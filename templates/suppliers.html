@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers - Micro ERP{% endblock %}
+{% block header %}Suppliers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{{ url_for('add_supplier') }}" class="btn btn-primary">➕ Add Supplier</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Contact Person</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if suppliers %}
+                {% for supplier in suppliers %}
+                <tr>
+                    <td>{{ supplier.id }}</td>
+                    <td>{{ supplier.name }}</td>
+                    <td>{{ supplier.contact if supplier.contact else 'N/A' }}</td>
+                    <td>{{ supplier.email if supplier.email else 'N/A' }}</td>
+                    <td>{{ supplier.phone if supplier.phone else 'N/A' }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('delete_supplier', id=supplier.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this supplier?')">🗑️ Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="no-data">No suppliers found. Click "Add Supplier" to create one.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

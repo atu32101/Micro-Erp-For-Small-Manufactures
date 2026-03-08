@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Create Order - Micro ERP{% endblock %}
+{% block header %}Create Order{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="POST" action="" class="data-form" id="orderForm">
+        <div class="form-group">
+            <label for="product_id">Select Product</label>
+            <select id="product_id" name="product_id" required onchange="calculateTotal()">
+                <option value="">-- Select Product --</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" data-price="{{ product.price }}" data-quantity="{{ product.quantity }}">
+                    {{ product.name }} - ₹{{ "%.2f"|format(product.price) }} (Available: {{ product.quantity }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" name="quantity" required min="1" value="1" placeholder="Enter quantity" oninput="calculateTotal()">
+        </div>
+        
+        <div class="form-group">
+            <label for="supplier_id">Assign Supplier (Optional)</label>
+            <select id="supplier_id" name="supplier_id">
+                <option value="">-- Select Supplier --</option>
+                {% for supplier in suppliers %}
+                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="total_price">Total Price</label>
+            <input type="text" id="total_price" name="total_price" readonly value="₹0.00" class="readonly-input">
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Order</button>
+            <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% block scripts %}
+<script>
+function calculateTotal() {
+    const productSelect = document.getElementById('product_id');
+    const quantityInput = document.getElementById('quantity');
+    const totalPriceInput = document.getElementById('total_price');
+    
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    const price = parseFloat(selectedOption.dataset.price) || 0;
+    const availableQuantity = parseInt(selectedOption.dataset.quantity) || 0;
+    const quantity = parseInt(quantityInput.value) || 0;
+    
+    if (quantity > availableQuantity) {
+        alert('Quantity exceeds available stock! Maximum available: ' + availableQuantity);
+        quantityInput.value = availableQuantity;
+        quantityInput.value = availableQuantity;
+    }
+    
+    const total = price * (parseInt(quantityInput.value) || 0);
+    totalPriceInput.value = '₹' + total.toFixed(2);
+}
+</script>
+{% endblock %}
+{% endblock %}

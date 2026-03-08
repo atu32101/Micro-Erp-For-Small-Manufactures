@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Levels - Micro ERP{% endblock %}
+{% block header %}Inventory Levels{% endblock %}
+
+{% block content %}
+<div class="inventory-page">
+    <!-- Stock Summary -->
+    <div class="stock-summary">
+        <div class="summary-card total">
+            <span class="summary-icon">📦</span>
+            <div class="summary-info">
+                <span class="summary-value">{{ stock_summary.total_products }}</span>
+                <span class="summary-label">Total Products</span>
+            </div>
+        </div>
+        <div class="summary-card stock">
+            <span class="summary-icon">📊</span>
+            <div class="summary-info">
+                <span class="summary-value">{{ stock_summary.total_stock }}</span>
+                <span class="summary-label">Total Units</span>
+            </div>
+        </div>
+        <div class="summary-card in-stock">
+            <span class="summary-icon">✅</span>
+            <div class="summary-info">
+                <span class="summary-value">{{ stock_summary.in_stock }}</span>
+                <span class="summary-label">In Stock</span>
+            </div>
+        </div>
+        <div class="summary-card low-stock">
+            <span class="summary-icon">⚠️</span>
+            <div class="summary-info">
+                <span class="summary-value">{{ stock_summary.low_stock }}</span>
+                <span class="summary-label">Low Stock</span>
+            </div>
+        </div>
+        <div class="summary-card out-of-stock">
+            <span class="summary-icon">❌</span>
+            <div class="summary-info">
+                <span class="summary-value">{{ stock_summary.out_of_stock }}</span>
+                <span class="summary-label">Out of Stock</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Table -->
+    <div class="products-section">
+        <h3>📦 Product Inventory</h3>
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product Name</th>
+                    <th>Supplier</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Stock Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr class="stock-{{ p.stock_status|lower|replace(' ', '-') }}">
+                    <td>#{{ p.id }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.supplier_name or 'N/A' }}</td>
+                    <td>₹{{ "%.2f"|format(p.price) }}</td>
+                    <td>{{ p.quantity }}</td>
+                    <td>
+                        <span class="stock-badge {{ p.stock_status|lower|replace(' ', '-') }}">
+                            {{ p.stock_status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.inventory-page { max-width: 1000px; margin: 0 auto; }
+.stock-summary { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
+.summary-card {
+    flex: 1; min-width: 150px; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px;
+    background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.summary-card.total { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.summary-card.stock { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+.summary-card.in-stock { background: #d4edda; }
+.summary-card.low-stock { background: #fff3cd; }
+.summary-card.out-of-stock { background: #f8d7da; }
+.summary-icon { font-size: 32px; }
+.summary-value { display: block; font-size: 28px; font-weight: bold; }
+.summary-label { display: block; font-size: 13px; opacity: 0.8; }
+.products-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+.products-section h3 { margin: 0 0 15px 0; color: #333; }
+.inventory-table { width: 100%; border-collapse: collapse; }
+.inventory-table th, .inventory-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+.inventory-table th { color: #888; font-weight: 500; font-size: 13px; }
+.stock-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.stock-badge.in-stock { background: #d4edda; color: #155724; }
+.stock-badge.low-stock { background: #fff3cd; color: #856404; }
+.stock-badge.out-of-stock { background: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
