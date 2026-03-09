@@ -4,7 +4,7 @@ A fully working Micro ERP Website for small manufacturers with role-based access
 
 ## Folder Structure
 ```
-d:/6th sem project/
+
 ├── app.py                  # Main Flask application
 ├── requirements.txt        # Python dependencies
 ├── README.md              # Project documentation
@@ -141,3 +141,4 @@ http://127.0.0.1:5000
 - Database: SQLite
 - Frontend: HTML, CSS, JavaScript
 - Templating: Jinja2
+
