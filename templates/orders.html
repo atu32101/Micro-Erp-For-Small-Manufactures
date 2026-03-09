@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Micro ERP{% endblock %}
+{% block header %}Orders{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{{ url_for('add_order') }}" class="btn btn-primary">➕ Create Order</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>Supplier</th>
+                <th>Status</th>
+                <th>Order Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if orders %}
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.product_name }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(order.total_price) }}</td>
+                    <td>{{ order.supplier_name or 'Not assigned' }}</td>
+                    <td>
+                        {% if order.status == 'pending' %}
+                        <span class="badge badge-warning">Pending</span>
+                        {% elif order.status == 'picked_up' %}
+                        <span class="badge badge-success">Picked Up</span>
+                        {% elif order.status == 'processing' %}
+                        <span class="badge badge-info">Processing</span>
+                        {% else %}
+                        <span class="badge">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.order_date }}</td>
+                    <td>
+                        {% if session.get('role') == 'supplier' and order.supplier_id and order.status != 'picked_up' %}
+                        <a href="{{ url_for('pickup_order', order_id=order.id) }}" class="btn btn-success btn-sm">Pick Up</a>
+                        {% endif %}
+                        <a href="{{ url_for('track_order_by_id', order_id=order.id) }}" class="btn btn-info btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="8" class="no-data">No orders found. Click "Create Order" to add one.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+.badge-warning {
+    background: #ffc107;
+    color: #333;
+}
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+.badge-info {
+    background: #17a2b8;
+    color: white;
+}
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin: 2px;
+}
+</style>
+{% endblock %}
