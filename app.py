@@ -5,9 +5,16 @@ from datetime import datetime
 import os
 
 import os
+import json
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import eventlet
 
 app = Flask(__name__)
 app.secret_key = 'micro_erp_secret_key_2024'
+
+# Chat globals
+online_users = set()
+sio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Database configuration - works locally and on cloud
 DB_PATH = os.environ.get('DATABASE_URL', os.path.join(os.path.dirname(__file__), 'instance', 'erp.db'))
@@ -120,7 +127,7 @@ def init_db():
     except:
         pass
     
-    # Create order tracking table
+# Create order tracking table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS order_tracking (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -131,6 +138,32 @@ def init_db():
             updated_at TEXT NOT NULL,
             FOREIGN KEY (order_id) REFERENCES orders (id),
             FOREIGN KEY (updated_by) REFERENCES users (id)
+        )
+    ''')
+    
+    # === CHAT TABLES ===
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS chats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user1_id INTEGER NOT NULL,
+            user2_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user1_id, user2_id),
+            FOREIGN KEY (user1_id) REFERENCES users (id),
+            FOREIGN KEY (user2_id) REFERENCES users (id)
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id INTEGER NOT NULL,
+            sender_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_read BOOLEAN DEFAULT 0,
+            FOREIGN KEY (chat_id) REFERENCES chats (id),
+            FOREIGN KEY (sender_id) REFERENCES users (id)
         )
     ''')
     
@@ -913,6 +946,147 @@ def profit_reports():
         'product_revenue': product_revenue, 'monthly_profit': monthly_profit, 'orders_by_status': orders_by_status}
     return render_template('profit_reports.html', profit_data=profit_data)
 
+# === CHAT ROUTES ===
+@app.route('/chat')
+@login_required
+def chat():
+    return render_template('chat.html')
+
+@app.route('/api/users')
+@login_required
+def api_users():
+    conn = get_db_connection()
+    users = conn.execute('''
+        SELECT id, username, role FROM users 
+        WHERE id != ? ORDER BY username
+    ''', (session['user_id'],)).fetchall()
+    conn.close()
+    
+    # Mark online users
+    user_list = []
+    for user in users:
+        user_list.append({
+            'id': user['id'],
+            'username': user['username'],
+            'role': user['role'],
+            'online': user['id'] in online_users
+        })
+    
+    return jsonify(user_list)
+
+@app.route('/api/messages/<int:partner_id>')
+@login_required
+def api_messages(partner_id):
+    user1 = min(session['user_id'], partner_id)
+    user2 = max(session['user_id'], partner_id)
+    
+    conn = get_db_connection()
+    chat = conn.execute('''
+        SELECT id FROM chats WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
+    ''', (user1, user2, user2, user1)).fetchone()
+    
+    chat_id = chat['id'] if chat else None
+    
+    if chat_id:
+        messages = conn.execute('''
+            SELECT m.*, u.username FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.chat_id = ? ORDER BY m.timestamp ASC
+        ''', (chat_id,)).fetchall()
+    else:
+        messages = []
+    
+    conn.close()
+    return jsonify([dict(msg) for msg in messages])
+
+@app.route('/api/messages/<int:message_id>/read', methods=['POST'])
+@login_required
+def api_mark_read(message_id):
+    conn = get_db_connection()
+    conn.execute('UPDATE messages SET is_read = 1 WHERE id = ? AND chat_id IN (SELECT id FROM chats WHERE user1_id = ? OR user2_id = ?)', 
+                (message_id, session['user_id'], session['user_id']))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+# === SOCKETIO EVENTS ===
+@sio.on('connect')
+def handle_connect():
+    if 'user_id' in session:
+        online_users.add(int(session['user_id']))
+        emit('user_online', {'user_id': session['user_id']}, broadcast=True)
+
+@sio.on('disconnect')
+def handle_disconnect():
+    if 'user_id' in session:
+        user_id = int(session['user_id'])
+        if user_id in online_users:
+            online_users.remove(user_id)
+            emit('user_offline', {'user_id': user_id}, broadcast=True)
+
+@sio.on('join_chat')
+def handle_join_chat(data):
+    room = data.get('chat_id')
+    if room:
+        join_room(room)
+        emit('status', {'msg': f'Joined chat {room}'})
+
+@sio.on('send_message')
+def handle_send_message(data):
+    chat_id = data.get('chat_id')
+    partner_id = data.get('partner_id')
+    content = data.get('content')
+    
+    if not all([chat_id, partner_id, content, 'user_id' in session]):
+        return
+    
+    sender_id = session['user_id']
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    conn = get_db_connection()
+    
+    # Get or create chat
+    user1 = min(sender_id, partner_id)
+    user2 = max(sender_id, partner_id)
+    chat = conn.execute('''
+        SELECT id FROM chats WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
+    ''', (user1, user2, user2, user1)).fetchone()
+    
+    if chat:
+        chat_id = chat['id']
+    else:
+        conn.execute('INSERT INTO chats (user1_id, user2_id) VALUES (?, ?)', (user1, user2))
+        chat_id = conn.lastrowid
+        conn.commit()
+    
+    # Save message
+    message_id = conn.execute('''
+        INSERT INTO messages (chat_id, sender_id, content) VALUES (?, ?, ?)
+    ''', (chat_id, sender_id, content)).lastrowid
+    
+    conn.commit()
+    conn.close()
+    
+    # Emit to room
+    message_data = {
+        'message_id': message_id,
+        'chat_id': chat_id,
+        'sender_id': sender_id,
+        'content': content,
+        'timestamp': timestamp
+    }
+    emit('message', message_data, room=f'chat_{user1}_{user2}')
+
+@sio.on('typing')
+def handle_typing(data):
+    chat_id = data.get('chat_id')
+    emit('typing', {'username': session.get('username')}, room=chat_id)
+
+@sio.on('stop_typing')
+def handle_stop_typing(data):
+    chat_id = data.get('chat_id')
+    emit('stop_typing', {}, room=chat_id)
+
 if __name__ == '__main__':
     os.makedirs(os.path.join(os.path.dirname(__file__), 'instance'), exist_ok=True)
     init_db()
@@ -920,11 +1094,17 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Micro ERP System Starting...")
     print("=" * 50)
+    print("🚀 NEW: Live Chat Feature!")
+    print("  - Real-time 1-on-1 messaging")
+    print("  - Online status indicators") 
+    print("  - Chat from sidebar")
+    print("=" * 50)
     print("Features:")
     print("  - Admin creates Manager/Staff accounts")
     print("  - Supplier can pick up orders")
-    print("  - Role-based access control")
+    print("  - Role-based access control") 
     print("  - Supplier notification on login")
+    print("  - 💬 Live Chat between users")
     print("=" * 50)
     print("Default credentials:")
     print("  Admin: admin / admin123")
@@ -932,4 +1112,4 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Access URL: http://127.0.0.1:5000")
     print("=" * 50)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    sio.run(app, host='0.0.0.0', port=5000, debug=True)

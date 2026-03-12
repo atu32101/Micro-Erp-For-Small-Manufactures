@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block title %}Chat - Micro ERP{% endblock %}
+{% block header %}Live Chat{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-sidebar">
+        <div class="chat-header">
+            <h3>Users Online</h3>
+            <span id="online-count" class="online-badge">0</span>
+        </div>
+        <div class="user-list" id="userList">
+            <!-- Dynamic users loaded via JS/API -->
+        </div>
+    </div>
+    
+    <div class="chat-main">
+        <div class="chat-header-main">
+            <div class="chat-partner-info">
+                <span id="chatPartnerName" class="partner-name">Select a user to chat</span>
+                <span id="chatPartnerStatus" class="status-offline">Offline</span>
+            </div>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <div class="no-chat-selected">
+                <div class="no-chat-icon">💬</div>
+                <p>Select a user from the left to start chatting</p>
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <div class="typing-indicator" id="typingIndicator"></div>
+            <div class="message-input-container">
+                <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+                <button id="sendButton" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+{% endblock %}
