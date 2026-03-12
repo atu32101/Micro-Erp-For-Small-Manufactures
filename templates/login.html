@@ -4,9 +4,46 @@
 
 {% block login_content %}
 <div class="login-box">
-    <div class="login-header">
-        <h2>Micro ERP</h2>
-        <p>Manufacturing Management System</p>
+    <div class="slider-hero">
+        <!-- Slide 1: Intro -->
+        <div class="slide active" data-slide="1">
+            <h1 class="hero-title">DigiManu Pro</h1>
+            <p class="hero-subtitle">Digital Transformation for Small Manufacturing</p>
+            <div class="hero-stats">
+                <div class="stat">📦 Real-time Inventory</div>
+                <div class="stat">🚚 Order Tracking</div>
+                <div class="stat">📈 Profit Analytics</div>
+            </div>
+        </div>
+        <!-- Slide 2: Features -->
+        <div class="slide" data-slide="2">
+            <h2>Key Features</h2>
+            <ul class="features-list">
+                <li>✅ Multi-user access with roles</li>
+                <li>✅ Complete order lifecycle mgmt</li>
+                <li>✅ Supplier & inventory control</li>
+                <li>✅ Sales & profit reporting</li>
+                <li>✅ Pending orders dashboard</li>
+            </ul>
+        </div>
+        <!-- Slide 3: Benefits -->
+        <div class="slide" data-slide="3">
+            <h2>Why DigiManu Pro?</h2>
+            <p>Empower your small manufacturing business with digital tools that:</p>
+            <ul class="benefits-list">
+                <li>⚡ Boost efficiency by 40%</li>
+                <li>💰 Reduce errors & losses</li>
+                <li>📱 Mobile-responsive design</li>
+                <li>🔒 Secure & scalable</li>
+            </ul>
+            <div class="cta">Transform your manufacturing today!</div>
+        </div>
+        <!-- Slider Controls -->
+        <div class="slider-controls">
+            <span class="dot active" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+            <span class="dot" data-slide="3"></span>
+        </div>
     </div>
     
     <form method="POST" action="{{ url_for('login') }}" class="login-form">
@@ -18,11 +55,11 @@
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required placeholder="Enter password">
         </div>
-        <button type="submit" class="btn btn-primary btn-block">Login</button>
+<button type="submit" class="btn btn-primary btn-block login-btn">Login to DigiManu Pro</button>
     </form>
     
-    <div class="login-footer">
-        <p>Contact Admin for user account creation</p>
+    <div class="login-footer slide-in">
+        <p>👤 Contact Admin for user account creation | 📧 support@digimanupro.com</p>
     </div>
 </div>
 {% endblock %}
