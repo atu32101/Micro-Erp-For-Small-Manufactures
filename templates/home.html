@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro ERP - Small Manufacturing Solution</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .home-nav { background: #232f3e; color: white; padding: 10px 0; }
+        .home-nav .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-home { font-size: 24px; font-weight: bold; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; }
+        .nav-links a:hover { color: #ff9900; }
+        .login-cta { background: #ff9900; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; }
+.hero { background: linear-gradient(135deg, #3498db, #2980b9); color: white; text-align: center; padding: 50px 15px; }
+        .hero h1 { font-size: 42px; margin-bottom: 15px; }
+        .hero p { font-size: 18px; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .hero-cta { background: #ff9900; color: white; padding: 14px 36px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: bold; display: inline-block; }
+        .slider-hero { position: relative; height: 450px; overflow: hidden; border-radius: 12px; margin-bottom: 30px; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 40px 30px; text-align: center; opacity: 0; transform: translateX(100%); transition: all 0.6s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(255,255,255,0.95); color: #232f3e; }
+        .slide.active { opacity: 1; transform: translateX(0); }
+        .slide.prev { transform: translateX(-100%); }
+        .slide-title { font-size: 32px; font-weight: 700; margin-bottom: 15px; color: #232f3e; }
+        .slide-subtitle { font-size: 18px; margin-bottom: 25px; color: #555; }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+        .service-card { background: white; padding: 35px 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); text-align: center; transition: all 0.3s ease; }
+        .service-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .service-icon { font-size: 60px; margin-bottom: 20px; color: #ff9900; }
+        .service-card h3 { font-size: 24px; margin-bottom: 15px; color: #232f3e; font-weight: 600; }
+        .service-card p { color: #666; line-height: 1.6; font-size: 16px; }
+        .footer { background: linear-gradient(135deg, #232f3e, #1a2530); color: white; text-align: center; padding: 30px 20px; margin-top: 50px; }
+        .footer a { color: #ff9900; text-decoration: none; font-weight: 500; }
+        .slider-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; background: #ddd; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #ff9900; transform: scale(1.2); }
+        @media (max-width: 768px) { .hero h1 { font-size: 32px; } .nav-links { gap: 15px; font-size: 16px; } .services-grid { grid-template-columns: 1fr; gap: 20px; } .slider-hero { height: 400px; } }
+    </style>
+</head>
+<body>
+
+    <nav class="home-nav">
+        <div class="container">
+            <div class="logo-home">ERP</div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#services">Services</a>
+                <a href="/login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+
+    <section id="home" class="hero">
+        <h1>Simple ERP for Small Manufacturing</h1>
+        <p>Manage inventory, orders, suppliers, and profits with ease. Built for small businesses.</p>
+        <a href="{{ url_for('login') }}" class="hero-cta">Get Started - Login</a>
+    </section>
+
+    <section id="about" class="section about">
+        <h2>About Micro ERP</h2>
+        <div class="about-content">
+            <p>Transform your small manufacturing business with our simple, powerful ERP system. No complex setup - just login and start managing your operations.</p>
+            <p>Multi-user roles, real-time inventory, order tracking, and profit analytics. Designed for efficiency.</p>
+        </div>
+    </section>
+
+    <section id="services" class="section">
+        <h2>Our Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">📦</div>
+                <h3>Inventory Management</h3>
+                <p>Track stock levels, low stock alerts, reorder management.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🛒</div>
+                <h3>Order Processing</h3>
+                <p>Create orders, track status, supplier pickup workflow.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📊</div>
+                <h3>Sales Analytics</h3>
+                <p>Monthly sales, profit reports, product performance.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🚚</div>
+                <h3>Supplier Management</h3>
+                <p>Add suppliers, assign products, manage pickups.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">👥</div>
+                <h3>User Roles</h3>
+                <p>Admin, Manager, Staff, Supplier access control.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📱</div>
+                <h3>Mobile Ready</h3>
+                <p>Fully responsive design works on all devices.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2024 Micro ERP. Simple solutions for small manufacturing. <a href="{{ url_for('login') }}" style="color: #ff9900;">Login</a></p>
+    </footer>
+</body>
+</html>
